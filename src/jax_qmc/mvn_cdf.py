@@ -27,10 +27,14 @@ from functools import partial
 from typing import Optional
 
 import jax
+jax.config.update("jax_enable_x64", True)
 import jax.numpy as jnp
 from jax import jit, lax, random, vmap
 from jax.scipy.special import ndtr, ndtri  # Φ and Φ⁻¹
 from jax.typing import ArrayLike
+
+from permuted_cholesky import permuted_cholesky_jax
+from scipy.stats._qmvnt import _permuted_cholesky
 
 import numpyro.distributions as dist
 
@@ -175,6 +179,11 @@ def mvn_rectangular_prob(
     lo = lower - mean
     hi = upper - mean
     L = jnp.linalg.cholesky(cov)
+    # L, lo, hi = permuted_cholesky_jax(cov,lo,hi)
+    # L, lo, hi = _permuted_cholesky(cov,lo,hi)
+    # L = jnp.array(L)
+    # lo = jnp.array(lo)
+    # hi = jnp.array(hi)
 
     w = random.uniform(key, (n_samples, d))
     probs = vmap(lambda wi: _genz_sample(wi, lo, hi, L))(w)
